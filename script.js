@@ -1,4 +1,4 @@
-
+const allPlants = document.getElementById('allPlants')
 
 const categoryContainer = document.getElementById('categoryContainer')
 
@@ -39,7 +39,7 @@ const showCatergory = (categories) => {
 
 
 const loadPlantByCategory = (categoryId) => {
-  console.log(categoryId)
+  
   fetch(`https://openapi.programming-hero.com/api/category/${categoryId}`)
     .then(res => res.json())
     .then(data => {
@@ -93,6 +93,27 @@ const showPlantsByCategory = (plants) => {
     `
   })
 }
+  
 
+const loadAllPlants = () => {
+  fetch(`https://openapi.programming-hero.com/api/plants`)
+    .then(res => res.json())
+    .then(data => {
+     
+      showAllPlants(data.plants)
+
+
+    })
+    .catch(err => {
+    console.log(err)
+  })
+}
+
+const showAllPlants = (allplants) => {
+  console.log(allplants)
+}
+
+
+loadAllPlants()
 
 loadcategory()
