@@ -1,119 +1,170 @@
-const allPlants = document.getElementById('allPlants')
 
-const categoryContainer = document.getElementById('categoryContainer')
+const categoryContainer = document.getElementById('categoryContainer');
+const plantContainer = document.getElementById('plantContainer');
+const spinner = document.getElementById('spinner');
+const cartList = document.getElementById('cartList');
+const totalEl = document.getElementById('total');
 
-const plantContainer = document.getElementById('plantContainer')
+let total = 0;
+
+
+const showSpinner = () => spinner.classList.remove('hidden');
+const hideSpinner = () => spinner.classList.add('hidden');
+
+
 const loadcategory = () => {
   fetch('https://openapi.programming-hero.com/api/categories')
-    .then((res) => res.json())
-    .then((data) => {
-      console.log(data.categories);
-      const categories = data.categories
-      showCatergory(categories)
-      
+    .then(res => res.json())
+    .then(data => {
+      showCatergory(data.categories);
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch(err => console.log(err));
 };
 
+
 const showCatergory = (categories) => {
+  categoryContainer.innerHTML = "";
+
+  
+  categoryContainer.innerHTML += `
+    <li id="all"
+      class="px-4 py-2 rounded cursor-pointer bg-green-800 text-white">
+      All Trees
+    </li>
+  `;
+
   categories.forEach(cat => {
-      categoryContainer.innerHTML+=`<li id="${cat.id}" class="px-4 py-2 rounded cursor-pointer hover:bg-green-200  text-black ">${cat.category_name}</li>`
-  })
-  categoryContainer.addEventListener('click', (e) => {const allLi = document.querySelectorAll('li')
-    allLi.forEach(li => {
-      li.classList.remove('bg-green-800'),
-          li.classList.remove('text-white')
-})
+    categoryContainer.innerHTML += `
+      <li id="${cat.id}"
+        class="px-4 py-2 rounded cursor-pointer hover:bg-green-200">
+        ${cat.category_name}
+      </li>
+    `;
+  });
 
+  categoryContainer.addEventListener('click', (e) => {
+    if (e.target.tagName === 'LI') {
 
-    if ((e.target.localName === 'li')) {
-      
-      e.target.classList.add('bg-green-800'),
-        e.target.classList.add('text-white')
-      loadPlantByCategory(e.target.id)
+      const allLi = categoryContainer.querySelectorAll('li');
+      allLi.forEach(li =>
+        li.classList.remove('bg-green-800', 'text-white')
+      );
+
+      e.target.classList.add('bg-green-800', 'text-white');
+
+      if (e.target.id === 'all') {
+        loadAllPlants();
+      } else {
+        loadPlantByCategory(e.target.id);
+      }
     }
-  })
-}
+  });
+};
 
-
-const loadPlantByCategory = (categoryId) => {
-  
-  fetch(`https://openapi.programming-hero.com/api/category/${categoryId}`)
-    .then(res => res.json())
-    .then(data => {
-     
-      showPlantsByCategory(data.plants)
-
-
-    })
-    .catch(err => {
-    console.log(err)
-  })
-}
-
-const showPlantsByCategory = (plants) => {
-  console.log(plants)
-  plantContainer.innerHTML=""
-  plants.forEach(plants => {
-    plantContainer.innerHTML += `
-     <div class="card bg-base-100 w-96 shadow-md rounded-xl">
-            
-            <figure class="px-6 pt-6">
-              <img src=${plants.image} alt="Mango Tree" class="rounded-xl h-48 w-full object-cover" />
-            </figure>
-
-            
-            <div class="card-body p-6 text-left">
-              
-              <h2 class="text-xl font-semibold">${plants.name}</h2>
-
-              
-              <p class="text-sm text-gray-500">
-                ${plants.description}
-              </p>
-
-              
-              <div class="flex items-center justify-between mt-3">
-                <span class="badge badge-success badge-outline">
-                  ${plants.category}
-                </span>
-                <span class="text-lg font-bold">${plants.price}</span>
-              </div>
-
-             
-              <div class="mt-4">
-                <button class="btn btn-success w-full rounded-full">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          </div>
-    `
-  })
-}
-  
 
 const loadAllPlants = () => {
-  fetch(`https://openapi.programming-hero.com/api/plants`)
+  showSpinner();
+  fetch('https://openapi.programming-hero.com/api/plants')
     .then(res => res.json())
     .then(data => {
-     
-      showAllPlants(data.plants)
-
-
+      hideSpinner();
+      showPlants(data.plants);
     })
-    .catch(err => {
-    console.log(err)
-  })
-}
-
-const showAllPlants = (allplants) => {
-  console.log(allplants)
-}
+    .catch(err => console.log(err));
+};
 
 
-loadAllPlants()
+const loadPlantByCategory = (id) => {
+  showSpinner();
+  fetch(`https://openapi.programming-hero.com/api/category/${id}`)
+    .then(res => res.json())
+    .then(data => {
+      hideSpinner();
+      showPlants(data.plants);
+    })
+    .catch(err => console.log(err));
+};
 
-loadcategory()
+
+const showPlants = (plants) => {
+  plantContainer.innerHTML = "";
+
+  plants.forEach(plant => {
+    plantContainer.innerHTML += `
+      <div class="card bg-base-100 shadow-md">
+        <figure class="px-6 pt-6">
+          <img src="${plant.image}"
+            class="h-40 w-full object-cover rounded" />
+        </figure>
+
+        <div class="card-body">
+          <h2 class="font-bold text-green-700 cursor-pointer"
+              onclick="showDetails(${plant.id})">
+            ${plant.name}
+          </h2>
+
+          <p class="text-sm text-gray-500">
+            ${plant.description.slice(0, 80)}...
+          </p>
+
+          <div class="flex justify-between mt-2">
+            <span class="badge badge-success badge-outline">
+              ${plant.category}
+            </span>
+            <span class="font-bold">৳ ${plant.price}</span>
+          </div>
+
+          <button class="btn btn-success mt-3"
+            onclick="addToCart('${plant.name}', ${plant.price})">
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    `;
+  });
+};
+
+
+
+
+
+const addToCart = (name, price) => {
+  total += price;
+  totalEl.innerText = total;
+
+  cartList.innerHTML += `
+    <li class="flex justify-between items-center">
+      ${name}
+      <button onclick="removeItem(this, ${price})">❌</button>
+    </li>
+  `;
+};
+
+const removeItem = (el, price) => {
+  total -= price;
+  totalEl.innerText = total;
+  el.parentElement.remove();
+};
+
+
+const showDetails = (id) => {
+  fetch(`https://openapi.programming-hero.com/api/plant/${id}`)
+    .then(res => res.json())
+    .then(data => {
+      const plant = data.data;
+
+      document.getElementById('modalTitle').innerText = plant.name;
+      document.getElementById('modalImage').src = plant.image;
+      document.getElementById('modalDesc').innerText = plant.description;
+      document.getElementById('modalCategory').innerText = plant.category;
+      document.getElementById('modalPrice').innerText = `৳ ${plant.price}`;
+
+      document.getElementById('plantModal').showModal();
+    })
+    .catch(err => console.log(err));
+};
+
+
+
+loadAllPlants();
+loadcategory();
