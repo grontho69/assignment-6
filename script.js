@@ -4,6 +4,8 @@ const plantContainer = document.getElementById('plantContainer');
 const spinner = document.getElementById('spinner');
 const cartList = document.getElementById('cartList');
 const totalEl = document.getElementById('total');
+const detailsBox = document.getElementById('details-container')
+
 
 let total = 0;
 
@@ -98,10 +100,10 @@ const showPlants = (plants) => {
         </figure>
 
         <div class="card-body">
-          <h2 class="font-bold text-green-700 cursor-pointer"
-              onclick="showDetails(${plant.id})">
+          <button class="font-bold text-green-700 cursor-pointer"
+              onclick="loadPlantDetail(${plant.id})">
             ${plant.name}
-          </h2>
+          </button>
 
           <p class="text-sm text-gray-500">
             ${plant.description.slice(0, 80)}...
@@ -124,10 +126,6 @@ const showPlants = (plants) => {
   });
 };
 
-
-
-
-
 const addToCart = (name, price) => {
   total += price;
   totalEl.innerText = total;
@@ -146,23 +144,34 @@ const removeItem = (el, price) => {
   el.parentElement.remove();
 };
 
+const loadPlantDetail = async (id) => {
+  showSpinner()
+  const url = `https://openapi.programming-hero.com/api/plant/${id}`;
+  const res = await fetch(url);
+  const details = await res.json();
+  showPlantDetail(details.plants)
+}
 
-const showDetails = (id) => {
-  fetch(`https://openapi.programming-hero.com/api/plant/${id}`)
-    .then(res => res.json())
-    .then(data => {
-      const plant = data.data;
+const showPlantDetail = (plant) => {
+  hideSpinner()
+  console.log(plant);
+  detailsBox.innerHTML = `   <figure>
+          <img src="${plant.image}" />
+        </figure>
+        <div class="card-body">
+          <h2 class="card-title">
+            ${plant.name}
+            <div class="badge badge-secondary">${plant.category}</div>
+          </h2>
+          <p>${plant.description}</p>
+          <div class="card-actions justify-end">
+            <div class="badge badge-outline">${plant.price}</div>
+           
+          </div>
+        </div>`;
+  document.getElementById('my_modal_3').showModal();
+}
 
-      document.getElementById('modalTitle').innerText = plant.name;
-      document.getElementById('modalImage').src = plant.image;
-      document.getElementById('modalDesc').innerText = plant.description;
-      document.getElementById('modalCategory').innerText = plant.category;
-      document.getElementById('modalPrice').innerText = `৳ ${plant.price}`;
-
-      document.getElementById('plantModal').showModal();
-    })
-    .catch(err => console.log(err));
-};
 
 
 
